@@ -17,6 +17,22 @@ function App() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const [file, setFile] = useState();
+
+  // function handleChange (e) {
+  //   console.log(e.target.files);
+  //   setFile(URL.createObjectURL(e.target.files[0]));
+  // }
+
+  function handleChange(e) {
+    const selectedFile = e.target.files[0];
+
+    if (selectedFile) {
+      setFile(URL.createObjectURL(e.target.files[0]));
+      addPhoto(selectedFile);
+    }
+  }
+
   function handleEdit(task) {
     setSelectedTask(task);
     setIsEditModalOpen(true);
@@ -25,6 +41,28 @@ function App() {
   function closeModal() {
     setIsEditModalOpen(false);
     setSelectedTask(null);
+  }
+
+  function addPhoto(file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch("http://localhost:3002/api/v1/upload", {
+      method: "POST",
+      body: formData,
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Failed to upload photo");
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("Photo uploaded successfully", data);
+    })
+    .catch(error => {
+      console.log("Error uploading the photo:", error.message);
+    });
   }
 
   function addTask (newTask) {
@@ -92,27 +130,22 @@ function App() {
     .catch(error => console.log(error.message));
   }
 
-  // function updateTask(updatedTask) {
-  //   const taskIndex = tasks.findIndex(task => task.id === updatedTask.id);
-
-  //   if (taskIndex !== -1) {
-  //     const updatedTasks = [...tasks];
-  //     updatedTasks[taskIndex] = {
-  //       ...updatedTasks[taskIndex],
-  //       ...updatedTask,
-  //     };
-  //     setTasks(updatedTasks);
-  //   }
-  // }
-
   return (
-    <main className="App">
-      <h1>TODO List</h1>
-      <h3>Enter new task, you lil' dingleberry</h3>
-      <Form addTask={addTask}/>
-      <Tasks tasks={tasks} deleteTask={deleteTask} updateTask={updateTask} handleEdit={handleEdit}/>
-      {isEditModalOpen && <EditTaskModal selectedTask={selectedTask} closeModal={closeModal} updateTask={updateTask} />}
-    </main>
+    <>
+      <main className="App">
+        <h1>TODO List</h1>
+        <h3>Enter new task, you lil' snozzberry</h3>
+        <Form addTask={addTask}/>
+        <Tasks tasks={tasks} deleteTask={deleteTask} updateTask={updateTask} handleEdit={handleEdit}/>
+        {isEditModalOpen && <EditTaskModal selectedTask={selectedTask} closeModal={closeModal} updateTask={updateTask} />}
+      </main>
+
+      <div>
+        <h2>Add Image:</h2>
+        <input type="file" onChange={handleChange} />
+        {file && <img src={file} alt="Ooops, maybe this isn't an image?" />}
+      </div>
+    </>
   );
 }
 
